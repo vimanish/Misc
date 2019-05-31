@@ -1,0 +1,54 @@
+Execute sfdc query in SFDC Developer console.
+Inspect Element and navigate to console.
+Paste the following code and hit Enter
+Download the cscv
+
+var ox = document.evaluate("//div[@id='editors-body']/div[not(contains(@style,'display:none') or contains(@style,'display: none'))]//table/tbody/tr",document,null,0,null);
+var rx = [];
+while(row = ox.iterateNext()){
+    var col = row.getElementsByTagName('td');
+    var ax = [];
+
+    for(var i=0; i<col.length; i++){
+        ax.push( formatData( col[i].textContent ) );
+    }
+
+    rx.push( ax );
+}
+
+// generating csv file
+var csv = "data:text/csv;charset=utf-8,filename=download.csv,";
+var rows = [];
+
+for(var i=0; i<rx.length; i++){
+    rows.push( rx[i].join(",") );
+}
+
+csv += rows.join('\r\n');
+
+popup(csv);
+
+function formatData(input) {
+    // replace " with “
+    var regexp = new RegExp(/["]/g);
+    var output = input.replace(regexp, "“");
+    //HTML
+    var regexp = new RegExp(/\<[^\<]+\>/g);
+    var output = output.replace(regexp, "");
+    if (output == "") return '';
+    return '"' + output + '"';
+}
+
+// showing data in window for copy/ paste
+function popup(data) {
+    var generator = window.open('', 'csv', 'height=400,width=600');
+    generator.document.write('<html><head><title>CSV</title>');
+    generator.document.write('</head><body style="overflow: hidden;">');
+    generator.document.write('<a href="'+encodeURI(csv)+'" download="Salesforce_query_export.csv">Download CSV</a><br>');
+    generator.document.write('<textArea style="width: 100%; height: 97%;" wrap="off" >');
+    generator.document.write(data);
+    generator.document.write('</textArea>');
+    generator.document.write('</body></html>');
+    generator.document.close();
+    return true;
+}
